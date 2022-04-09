@@ -1,0 +1,10 @@
+# Make screenshot
+# Sleep is required because for some reason, scrot detects the key release
+# as a sign to take screenshot and then xclip cannot find the saved file.
+# 0.2 seconds is the most optimal time between giving time to release
+# PrtSc key and not feeling too long to react
+"sleep 0.2 && ${HOME}/Scripts/prtsc.sh"
+	Print
+
+"sleep 0.2 && ${HOME}/Scripts/prtsc.sh full"
+    Alt + Print

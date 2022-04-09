@@ -1,0 +1,5 @@
+# DISPLAY and XAUTHORITY are set so we are able to actually run notify-send from cron script.
+# It check the condition that laptop doesn't run from AC (`/sys/class/power_supply/AC/online` will have 0) and
+# since I got two batteries I take the average of the two and check if it is less than 15
+
+* * * * * export DISPLAY=:0 && XAUTHORITY=/home/linet/.Xauthority && [ $(cat /sys/class/power_supply/AC/online) -eq 0 ] && [ $(( ($(cat /sys/class/power_supply/BAT0/capacity) + $(cat /sys/class/power_supply/BAT1/capacity)) / 2 )) -lt 15 ] && /usr/bin/notify-send --urgency=critical 'Battery Low'
