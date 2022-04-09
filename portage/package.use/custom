@@ -1,0 +1,17 @@
+# Adds supported formats
+media-gfx/imv gif jpeg png freeimage
+
+# Allows to actually support Java 11
+dev-java/openjdk gentoo-vm
+
+# Options to add the USB redirection to the VMs
+app-emulation/qemu usb spice usbredir
+
+# UI for virt-manager (todo: get used to CLI ffs :D)
+app-emulation/virt-manager usbredir gtk
+
+# Adds browser integration from KeePassXC
+app-admin/keepassxc browser
+
+# Adds pulse audio support for alsa-plugins
+media-plugins/alsa-plugins pulseaudio
