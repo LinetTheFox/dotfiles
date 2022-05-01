@@ -71,6 +71,7 @@ static const struct arg args[] = {
 	{ keymap,	"[  %s ]", 	NULL },
 	{ battery_perc,  "[ %s%% ]",	NULL },
 	{ cpu_perc, 	"[ 閭 %s%% ]",	NULL	},
+    { temp,         "[  %s°C ]", "/sys/class/thermal/thermal_zone1/temp" },
 	{ ram_used, 	"[ ﬙ %s ]", 	NULL	},
 	{ swap_used,	"[ ﬚ %s ]",	NULL	},
 	{ wifi_essid,	"[  %s ",	"wlp3s0" },

@@ -41,7 +41,7 @@
         }
 
         if (ac_online) {
-            return "ﮣ";
+            return "⚡`";
         }
 
 		if (perc <= 20) {
