@@ -27,37 +27,6 @@
 	}
 
 	const char *
-	perc_symbol(int perc)
-    {
-        char path[PATH_MAX];
-        int ac_online;
-        if (esnprintf(path, sizeof(path),
-                    "/sys/class/power_supply/%s/online", "AC") < 0) {
-            return "?";
-        }
-
-        if (pscanf(path, "%d", &ac_online) != 1) {
-            return "?";
-        }
-
-        if (ac_online) {
-            return "⚡`";
-        }
-
-		if (perc <= 20) {
-			return "";
-		} else if (perc <= 40) {
-			return "";
-		} else if (perc <= 60) {
-			return "";
-		} else if (perc <= 80) {
-			return "";
-		} else {
-			return "";
-		}
-	}
-
-	const char *
 	battery_perc()
 	{
 		int perc1;
@@ -84,7 +53,7 @@
 			return NULL;
 		}
 
-		return bprintf("%s %d I %s %d", perc_symbol(perc1), perc1, perc_symbol(perc2), perc2);
+		return bprintf("%d%% / %d%%", perc1, perc2);
 	}
 
 	const char *
