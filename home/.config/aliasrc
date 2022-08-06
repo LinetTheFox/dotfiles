@@ -21,8 +21,9 @@ alias untar="tar -zsvf"
 # Get SHA-256 checksum
 alias sha="shasum -a 256"
 
-# Short command for neovim
-alias v="nvim"
+# Short commands for vim and neovim
+alias v="vim"
+alias nv="nvim"
 
 # Quicker clear :)
 alias c="clear"
