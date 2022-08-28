@@ -2,75 +2,82 @@
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
 
--- =======
--- IMPORTS
--- =======
+-- {{{ Imports
+-- Standard awesome library
 
 local gears = require("gears")
 local awful = require("awful")
 require("awful.autofocus")
+
+-- Widget and layout library
 local wibox = require("wibox")
+
+-- Theme handling library
 local beautiful = require("beautiful")
+
+-- Notification library
 local naughty = require("naughty")
+
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
+
+-- Enable hotkeys help widget for VIM and other apps
+-- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
-local os = require("os")
 
--- =====================
--- USER CONFIG DIRECTORY (you should be there if you see this file)
--- =====================
+-- }}}
 
+-- For running commands
+local os = require("os")-- {{{ Custom definitioddddns
+
+-- User's configuration directory
 local local_config_dir = "~/.config/awesome/"
 
--- ==============
--- ERROR HANDLING
--- ==============
 
+-- {{{ Error handling
+-- Check if awesome encountered an error during startup and fell back to
+-- another config (This code will only ever execute for the fallback config)
 if awesome.startup_errors then
-    naughty.notify({
-            preset = naughty.config.presets.critical,
-            title = "Oops, there were errors during startup!",
-            text = awesome.startup_errors })
+    naughty.notify({ preset = naughty.config.presets.critical,
+                     title = "Oops, there were errors during startup!",
+                     text = awesome.startup_errors })
 end
 
+-- Handle runtime errors after startup
 do
     local in_error = false
-    awesome.connect_signal(
-        "debug::error", 
-        function (err)
-            if in_error then return end
-            in_error = true
+    awesome.connect_signal("debug::error", function (err)
+        -- Make sure we don't go into an endless error loop
+        if in_error then return end
+        in_error = true
 
-            naughty.notify({
-                    preset = naughty.config.presets.critical,
-                    title = "Oops, an error happened!",
-                    text = tostring(err) })
-            in_error = false
-        end
-    )
+        naughty.notify({ preset = naughty.config.presets.critical,
+                         title = "Oops, an error happened!",
+                         text = tostring(err) })
+        in_error = false
+    end)
 end
+-- }}}
 
--- =====
--- THEME
--- =====
-
+-- Initialize the theme - all the definitions of `theme` will be
+-- available from `beautiful`.
+-- E.g. `beautiful.bg_focus` is available here if `theme` table
+-- in theme.lua defines a `bg_focus` variable
 beautiful.init(local_config_dir .. "themes/default/theme.lua")
 
--- ==================
--- CONFIG DEFINITIONS
--- ==================
+-- {{{ Variable definitions
 
-local terminal = "alacritty"
+-- This is used later as the default terminal and editor to run.
+
+local terminal = "st"
 local editor = os.getenv("EDITOR") or "vim"
 local editor_cmd = terminal .. " -e " .. editor
 
-local modkey = "Mod4"
+-- | Variables for the commands |
 
-awful.layout.layouts = {
-    awful.layout.suit.tile,
-    awful.layout.suit.floating,
-}
+-- WARNING: requires https://tools.suckless.org/dmenu/
+
+-- Dmenu parameters
 
 local dmenu_mon = "0" -- Monitor number to display dmenu on
 -- WARNING! You may need to install Ubuntu fonts if you're on a distro
@@ -81,14 +88,9 @@ local dmenu_nf = beautiful.fg_normal -- Normal foreground color
 local dmenu_sb = beautiful.bg_focus -- Selected background color
 local dmenu_sf = beautiful.fg_focus -- Selected foreground color
 local amixer_step = "5%"
-local brightnessctl_step = "5%"
-local weather_location = "Kyiv" -- Put your city/location to get weather
+local xbacklight_step = "5"
 
--- ======================
--- COMMANDS FOR SHORTCUTS
--- ======================
-
-local lock_screen = "i3lock -i /home/linetm/.config/awesome/themes/default/bg.png"
+-- Custom commands for the shortcuts down below
 
 local run_dmenu = string.format(
     'dmenu_run -m %s -fn %s -nb "%s" -nf "%s" -sb "%s" -sf "%s"',
@@ -100,31 +102,45 @@ local run_dmenu = string.format(
     dmenu_sf
 )
 
--- WARNING: Following 5 require PulseAudio and pactl
 local up_volume = string.format(
-    "pactl set-sink-volume @DEFAULT_SINK@ +%s",
+    "amixer -q set Master %s+ unmute",
     amixer_step
 )
 
 local down_volume = string.format(
-    "pactl set-sink-volume @DEFAULT_SINK@ -%s",
+    "amixer -q set Master %s- unmute",
     amixer_step
 )
 
-local mute_toggle = "pactl set-sink-mute @DEFAULT_SINK@ toggle"
-local get_mute = "pactl get-sink-mute @DEFAULT_SINK@ | awk -F ' ' '{print $2}'"
-local get_volume = "pactl get-sink-volume @DEFAULT_SINK@ | head -1 | awk -F ' ' '{print $5}'"
+local up_brightness = string.format(
+    "xbacklight -inc %s",
+    xbacklight_step
+)
 
--- WARNING: Following 4 require brightnessctl
-local up_brightness = string.format("brightnessctl set %s+", brightnessctl_step)
-local down_brightness = string.format("brightnessctl set %s-", brightnessctl_step)
-local get_brightness = "brightnessctl get"
+local down_brightness = string.format(
+    "xbacklight -dec %s",
+    xbacklight_step
+)
+local mute_toggle = "amixer -q set Master toggle"
 
+-- Default modkey.
+-- Usually, Mod4 is the key with a logo between Control and Alt.
+-- If you do not like this or do not have such a key,
+-- I suggest you to remap Mod4 to another key using xmodmap or other tools.
+-- However, you can use another modifier like Mod1, but it may interact with others.
+local modkey = "Mod4"
 
--- =================
--- UTILS FOR WIDGETS
--- =================
+-- Table of layouts to cover with awful.layout.inc, order matters.
+awful.layout.layouts = {
+    awful.layout.suit.tile,
+    awful.layout.suit.floating,
+}
+-- }}}
 
+-- {{{ Utils
+
+-- Helper function to read the content of a file. Used for reading data
+-- from /sys/class/..., so only reading the first line here.
 local function read_stat_file(file)
     local content = ""
     local f = io.open(file, "r")
@@ -136,89 +152,49 @@ local function read_stat_file(file)
     return content
 end
 
-local function get_audio_sink_mute()
-    local outP = assert(io.popen(get_mute, "r"))
-    local output = outP:read("l")
-    outP:close()
-    if output == "no" then
-        return false
-    else
-        return true
-    end
-end
+-- Sample file paths (Linux)
 
-local function get_audio_sink_volume()
-    local outP = assert(io.popen(get_volume, "r"))
-    local output = outP:read("l")
-    outP:close()
-    return output
-end
-
-local function get_screen_brightness()
-    local outP = assert(io.popen(get_brightness, "r"))
-    local output = outP:read("l")
-    outP:close()
-    return output
-end
-
-local function get_weather()
-    local outP = assert(io.popen("curl -s wttr.in/"..weather_location.."?format='%c%t'"))
-    local output = outP:read("l")
-    outP:close()
-
-    return output
-end
-
-local function battery_capacity(batN) 
+-- Capacity of the battery. By default BAT0, but can be BAT1, BAT2... if there are more.
+-- In that case, BAT0 is internal (usually soldered) battery, while 1, 2... are removable
+local battery_capacity = function (batN) 
     return string.format("/sys/class/power_supply/BAT%d/capacity", batN)
 end
 
-local ac_connected = "/sys/class/power_supply/ACAD/online"
+-- Checks whether device is connected to AC outlet
+-- 0 if no (running off of battery)
+-- 1 if yes
+local ac_connected = "/sys/class/power_supply/AC/online"
 
--- =====
--- WIBAR
--- =====
+-- }}}
 
-local function w_separator(id)
-    return wibox.widget {
-        {
-            id      = tostring(id),
-            text    = "   ",
-            widget  = wibox.widget.textbox,
-        },
-        layout = wibox.layout.stack
-    }
-end
+-- {{{ Wibar
 
-local w_layout = awful.widget.keyboardlayout()
+-- Keyboard map indicator and switcher
+local mykeyboardlayout = awful.widget.keyboardlayout()
 
-local w_clock = wibox.widget.textclock("🕐 %a %b %d, %H:%M:%S ", 1)
+-- Create a textclock widget
+local mytextclock = wibox.widget.textclock(
+    " 🕐 %a %b %d, %H:%M:%S ",
+    1
+)
 
-local w_battery = wibox.widget {
+-- Create a battery monitor widget
+-- Note: my laptop has 2 batteries, so I create 2 instances for it
+local battery_1_widget = wibox.widget {
     {
-        id          = "batmon",
-        text        = "...",
-        widget      = wibox.widget.textbox,
+        id           = "bat1mon",
+        text         = "🔋 100%",
+        widget       = wibox.widget.textbox,
     },
-    layout = wibox.layout.stack,
+    layout      = wibox.layout.stack,
     set_battery = function(self, val)
         local is_charging = read_stat_file(ac_connected)
         local emoji = "🔋"
         if is_charging == "1" then
             emoji = "🔌"
-        elseif tonumber(val) < 15 then
-            emoji = "🪫"
-            naughty.notify({
-                title = "Warning",
-                text = "Battery low!",
-                height = 100,
-                width = 500,
-                preset = naughty.config.presets.critical,
-                timeout = 1
-            })
         end
-        self.batmon.text  = emoji.." "..tonumber(val).."%"
-        self.batmon.value = tonumber(val)
+        self.bat1mon.text  = emoji.." "..tonumber(val).."%"
+        self.bat1mon.value = tonumber(val)
     end,
 }
 gears.timer {
@@ -226,84 +202,36 @@ gears.timer {
     call_now  = true,
     autostart = true,
     callback  = function()
-        local cap = battery_capacity(1)
-        local charge = read_stat_file(cap)
-        w_battery.battery = charge
+        local charge = read_stat_file(battery_capacity(0))
+        battery_1_widget.battery = charge
     end
 }
 
-local w_volume = wibox.widget {
+-- Widget for second battery. Doesn't already need the icon, since first
+-- one has it, only a space as a separator
+local battery_2_widget = wibox.widget {
     {
-        id          = "volumemon",
-        text        = "...",
-        widget      = wibox.widget.textbox
+        id           = "bat2mon",
+        text         = "100%",
+        widget       = wibox.widget.textbox,
     },
-    layout = wibox.layout.stack,
-    -- Would love a hint on how to do it not using the setter :/
-    set_update = function(self, v)
-        local is_muted = get_audio_sink_mute()
-        local emoji = ""
-        if is_muted then
-            emoji = "🔇"
-        else
-            emoji = "🔊"
-        end
-        local volume = get_audio_sink_volume()
-        self.volumemon.text = emoji.." "..volume
+    layout      = wibox.layout.stack,
+    set_battery = function(self, val)
+        self.bat2mon.text  = " "..tonumber(val).."% "
+        self.bat2mon.value = tonumber(val)
     end,
 }
 gears.timer {
-    timeout = 1,
-    call_now = true,
+    timeout   = 1,
+    call_now  = true,
     autostart = true,
-    callback = function ()
-        w_volume.update = 1
+    callback  = function()
+        local charge = read_stat_file(battery_capacity(1))
+        battery_2_widget.battery = charge
     end
 }
 
-local w_brightness = wibox.widget {
-    {
-        id          = "brightnessmon",
-        text        = "...",
-        widget      = wibox.widget.textbox
-    },
-    layout = wibox.layout.stack,
-    set_value = function(self, val)
-        local val_num = tonumber(val)
-        local percentage = math.floor(val_num / 255 * 100)
-        self.brightnessmon.text = "🔅 "..percentage.."%"
-    end
-}
-gears.timer {
-    timeout = 1,
-    call_now = true,
-    autostart = true,
-    callback = function () 
-       local brightness = get_screen_brightness()
-       w_brightness.value = brightness
-    end
-}
-
-local w_weather = wibox.widget {
-    {
-        id          = "weathermon",
-        text        = "...",
-        widget      = wibox.widget.textbox
-    },
-    layout = wibox.layout.stack,
-    set_value       = function(self, val)
-        self.weathermon.text = val
-    end
-}
-gears.timer {
-    timer = 3600,
-    call_now = true,
-    autostart = true,
-    callback = function ()
-        local wttrin = get_weather()
-        w_weather.value = wttrin
-    end
-}
+-- Create a wibox for each screen and add it
 
 local taglist_buttons = gears.table.join(
                     awful.button({ }, 1, function(t) t:view_only() end),
@@ -361,12 +289,17 @@ end
 screen.connect_signal("property::geometry", set_wallpaper)
 
 awful.screen.connect_for_each_screen(function(s)
+    -- Wallpaper
     set_wallpaper(s)
 
+    -- Each screen has its own tag table.
     awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
 
+    -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
 
+    -- Create an imagebox widget which will contain an icon indicating which layout we're using.
+    -- We need one layoutbox per screen.
     s.mylayoutbox = awful.widget.layoutbox(s)
     s.mylayoutbox:buttons(gears.table.join(
                            awful.button({ }, 1, function () awful.layout.inc( 1) end),
@@ -374,12 +307,14 @@ awful.screen.connect_for_each_screen(function(s)
                            awful.button({ }, 4, function () awful.layout.inc( 1) end),
                            awful.button({ }, 5, function () awful.layout.inc(-1) end)))
 
+    -- Create a taglist widget
     s.mytaglist = awful.widget.taglist {
         screen  = s,
         filter  = awful.widget.taglist.filter.all,
         buttons = taglist_buttons
     }
 
+    -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist {
         screen  = s,
         filter  = awful.widget.tasklist.filter.currenttags,
@@ -392,48 +327,37 @@ awful.screen.connect_for_each_screen(function(s)
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
-        {
+        { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
             s.mytaglist,
             s.mypromptbox,
         },
-        s.mytasklist,
-        {
+        s.mytasklist, -- Middle widget
+        { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            w_separator(1),
             wibox.widget.systray(),
-            w_separator(2),
+            wibox.widget.textbox("  "),
             wibox.widget.textbox("⌨️"),
-            w_layout,
-            w_separator(3),
-            w_weather,
-            w_separator(4),
-            w_battery,
-            w_separator(5),
-            w_volume,
-            w_separator(6),
-            w_brightness,
-            w_separator(7),
-            w_clock,
+            mykeyboardlayout,
+            wibox.widget.textbox("  "),
+            battery_1_widget,
+            battery_2_widget,
+            mytextclock,
             s.mylayoutbox,
         },
     }
 end)
+-- }}}
 
--- ==============
--- MOUSE BINDINGS
--- ==============
-
+-- {{{ Mouse bindings
 root.buttons(gears.table.join(
     awful.button({ }, 3, function () mymainmenu:toggle() end),
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
 ))
+-- }}}
 
-
--- ============
--- KEY BINDINGS
--- ============
+-- {{{ Key bindings
 
 -- Notes: the, here default, tiling mode uses DWM's master-stack layout.
 -- The order of the windows is considered as:
@@ -484,6 +408,8 @@ local globalkeys = gears.table.join(
         { description = "Show main menu", group = "awesome" }
     ),
 
+    -- | Layout manipulation |
+
     awful.key(
         { modkey, "Shift" }, "j",
         function () awful.client.swap.byidx(1) end,
@@ -512,6 +438,8 @@ local globalkeys = gears.table.join(
         end,
         { description = "Focus the previously focused client", group = "client" }
     ),
+
+    -- | Standard program |
 
     awful.key(
         { modkey }, "Return",
@@ -556,15 +484,6 @@ local globalkeys = gears.table.join(
     ),
 
     awful.key(
-        { modkey, "Shift" }, "t",
-        function ()
-            local screen = awful.screen.focused()
-            screen.mywibox.visible = not screen.mywibox.visible
-        end,
-        { description = "Toggle the visibility of status bar on current screen", group = "layout" }
-    ),
-
-    awful.key(
         { modkey, "Control" }, "h",
         function () awful.tag.incncol(1, nil, true) end,
         { description = "Increase the number of stack columns", group = "layout" }
@@ -588,14 +507,16 @@ local globalkeys = gears.table.join(
         { description = "Switch to prev window mode", group = "layout" }
     ),
 
+    -- | Personal other apps' and system stuff shortcuts |
+
     awful.key(
         {modkey, "Shift" }, "x",
-        function () awful.util.spawn(lock_screen) end,
+        function () awful.util.spawn("slock") end,
         { description = "Lock screen", group = "programs" }
     ),
 
     awful.key(
-        { modkey }, "d",
+        {modkey }, "d",
         function () awful.spawn(run_dmenu) end,
         { description = "Open dmenu", group = "programs" }
     ),
@@ -694,6 +615,8 @@ local clientkeys = gears.table.join(
 )
 
 -- Bind all key numbers to tags.
+-- Be careful: we use keycodes to make it work on any keyboard layout.
+-- This should map on the top row of your keyboard, usually 1 to 9.
 for i = 1, 9 do
     globalkeys = gears.table.join(globalkeys,
 
@@ -772,11 +695,12 @@ local clientbuttons = gears.table.join(
     )
 )
 
+-- Set keys
 root.keys(globalkeys)
 
--- =====
--- RULES
--- =====
+-- }}}
+
+-- {{{ Rules
 
 -- Rules to apply to new clients (through the "manage" signal).
 awful.rules.rules = {
@@ -814,6 +738,9 @@ awful.rules.rules = {
           "veromix",
           "xtightvncviewer",
         },
+
+        -- Note that the name property shown in xprop might be set slightly after creation of the client
+        -- and the name shown there might not match defined rules here.
         name = {
           "Event Tester",  -- xev.
         },
@@ -824,6 +751,7 @@ awful.rules.rules = {
         }
       }, properties = { floating = true }},
 
+    -- Add titlebars to and dialogs and remove from normal clients
     {
         rule_any = {
             type = { "normal" }
@@ -840,11 +768,9 @@ awful.rules.rules = {
     -- { rule = { class = "Firefox" },
     --   properties = { screen = 1, tag = "2" } },
 }
+-- }}}
 
--- =======
--- SIGNALS
--- =======
-
+-- {{{ Signals
 -- Signal function to execute when a new client appears.
 client.connect_signal("manage", function (c)
     -- Set the windows at the slave,
@@ -859,15 +785,19 @@ client.connect_signal("manage", function (c)
     end
 end)
 
+-- Set the color to border_focus when client is focused
 client.connect_signal("focus", function (c)
     c.border_color = beautiful.border_focus
 end)
 
+-- Set the color to border_normal when client is not focused
 client.connect_signal("unfocus", function (c)
     c.border_color = beautiful.border_normal
 end)
 
+-- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)
+    -- buttons for the titlebar
     local buttons = gears.table.join(
         awful.button({ }, 1, function()
             c:emit_signal("request::activate", "titlebar", {raise = true})
@@ -880,20 +810,20 @@ client.connect_signal("request::titlebars", function(c)
     )
 
     awful.titlebar(c) : setup {
-        {
+        { -- Left
             awful.titlebar.widget.iconwidget(c),
             buttons = buttons,
             layout  = wibox.layout.fixed.horizontal
         },
-        {
-            {
+        { -- Middle
+            { -- Title
                 align  = "center",
                 widget = awful.titlebar.widget.titlewidget(c)
             },
             buttons = buttons,
             layout  = wibox.layout.flex.horizontal
         },
-        {
+        { -- Right
             awful.titlebar.widget.floatingbutton (c),
             awful.titlebar.widget.maximizedbutton(c),
             awful.titlebar.widget.stickybutton   (c),
@@ -904,3 +834,4 @@ client.connect_signal("request::titlebars", function(c)
         layout = wibox.layout.align.horizontal
     }
 end)
+-- }}}

@@ -1,0 +1,56 @@
+
+# Syncing Portage packages cache
+alias esync="doas emerge --sync"
+
+# Updating all Portage packages
+alias eupdate="doas emerge -uUDq @world"
+
+# Updating the configs for update
+alias dc="doas dispatch-conf"
+
+# Listing all packages
+alias lspkgs="qlist -IRv >> packages && vim packages"
+
+# Shows current public IP address (not the one in local network, 
+# but what the websites see)
+alias myip="curl ipinfo.io/ip"
+
+# Most archiving tools have un... command, but not tar :)
+alias untar="tar -zsvf"
+
+# Get SHA-256 checksum
+alias sha="shasum -a 256"
+
+# Short commands for vim and neovim
+alias v="vim"
+alias nv="nvim"
+
+# Quicker clear :)
+alias c="clear"
+
+# ls, with the human-readable size and sorted by size
+alias lt="ls --human-readable --size -1 -S --classify"
+
+alias tsync="doas ntpdate -b -u 0.gentoo.pool.ntp.org"
+
+# Various git aliases
+alias gch="git checkout"
+alias gl="git log --all"
+alias glo="git log --oneline --all"
+alias glg="git log --oneline --all --graph"
+alias ga="git add --all"
+alias gca="git add --all && git commit -m"
+alias gp="git pull origin"
+alias gpb='git pull origin `git branch --show-current`'
+alias gP='git push origin `git branch --show-current`'
+alias gr="git reset --hard"
+alias gfa="git fetch --all"
+alias gm="git merge"
+
+# Change message of last commit
+alias gcam="git commit --amend -m"
+
+alias mfd="doas mount /dev/sdb1 /mnt/external -o umask=000,user,rw"
+alias ufd="doas umount /dev/sdb1"
+
+alias sudo="doas"
