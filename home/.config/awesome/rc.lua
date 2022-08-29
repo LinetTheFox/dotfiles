@@ -82,7 +82,6 @@ local dmenu_sb = beautiful.bg_focus -- Selected background color
 local dmenu_sf = beautiful.fg_focus -- Selected foreground color
 local amixer_step = "5%"
 local brightnessctl_step = "5%"
-local weather_location = "Kyiv" -- Put your city/location to get weather
 
 -- ======================
 -- COMMANDS FOR SHORTCUTS
@@ -115,7 +114,7 @@ local mute_toggle = "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 local get_mute = "pactl get-sink-mute @DEFAULT_SINK@ | awk -F ' ' '{print $2}'"
 local get_volume = "pactl get-sink-volume @DEFAULT_SINK@ | head -1 | awk -F ' ' '{print $5}'"
 
--- WARNING: Following 4 require brightnessctl
+-- WARNING: Following 3 require brightnessctl
 local up_brightness = string.format("brightnessctl set %s+", brightnessctl_step)
 local down_brightness = string.format("brightnessctl set %s-", brightnessctl_step)
 local get_brightness = "brightnessctl get"
@@ -158,14 +157,6 @@ local function get_screen_brightness()
     local outP = assert(io.popen(get_brightness, "r"))
     local output = outP:read("l")
     outP:close()
-    return output
-end
-
-local function get_weather()
-    local outP = assert(io.popen("curl -s wttr.in/"..weather_location.."?format='%c%t'"))
-    local output = outP:read("l")
-    outP:close()
-
     return output
 end
 
@@ -284,27 +275,6 @@ gears.timer {
     end
 }
 
-local w_weather = wibox.widget {
-    {
-        id          = "weathermon",
-        text        = "...",
-        widget      = wibox.widget.textbox
-    },
-    layout = wibox.layout.stack,
-    set_value       = function(self, val)
-        self.weathermon.text = val
-    end
-}
-gears.timer {
-    timer = 3600,
-    call_now = true,
-    autostart = true,
-    callback = function ()
-        local wttrin = get_weather()
-        w_weather.value = wttrin
-    end
-}
-
 local taglist_buttons = gears.table.join(
                     awful.button({ }, 1, function(t) t:view_only() end),
                     awful.button({ modkey }, 1, function(t)
@@ -406,14 +376,12 @@ awful.screen.connect_for_each_screen(function(s)
             wibox.widget.textbox("⌨️"),
             w_layout,
             w_separator(3),
-            w_weather,
-            w_separator(4),
             w_battery,
-            w_separator(5),
+            w_separator(4),
             w_volume,
-            w_separator(6),
+            w_separator(5),
             w_brightness,
-            w_separator(7),
+            w_separator(6),
             w_clock,
             s.mylayoutbox,
         },
