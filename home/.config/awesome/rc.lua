@@ -240,6 +240,9 @@ local w_volume = wibox.widget {
             emoji = "🔊"
         end
         local volume = get_audio_sink_volume()
+        if (volume == nil) then
+            volume = "0"
+        end
         self.volumemon.text = emoji.." "..volume
     end,
 }
