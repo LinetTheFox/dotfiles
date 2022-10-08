@@ -17,6 +17,10 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 local os = require("os")
 
+local utils = require("utils")
+local commands = require("commands")
+local files = require("files")
+
 -- =====================
 -- USER CONFIG DIRECTORY (you should be there if you see this file)
 -- =====================
@@ -83,89 +87,6 @@ local dmenu_sf = beautiful.fg_focus -- Selected foreground color
 local amixer_step = "5%"
 local brightnessctl_step = "5%"
 
--- ======================
--- COMMANDS FOR SHORTCUTS
--- ======================
-
-local lock_screen = "i3lock -i /home/linetm/.config/awesome/themes/default/bg.png"
-
-local run_dmenu = string.format(
-    'dmenu_run -m %s -fn %s -nb "%s" -nf "%s" -sb "%s" -sf "%s"',
-    dmenu_mon,
-    dmenu_font,
-    dmenu_nb,
-    dmenu_nf,
-    dmenu_sb,
-    dmenu_sf
-)
-
--- WARNING: Following 5 require PulseAudio and pactl
-local up_volume = string.format(
-    "pactl set-sink-volume @DEFAULT_SINK@ +%s",
-    amixer_step
-)
-
-local down_volume = string.format(
-    "pactl set-sink-volume @DEFAULT_SINK@ -%s",
-    amixer_step
-)
-
-local mute_toggle = "pactl set-sink-mute @DEFAULT_SINK@ toggle"
-local get_mute = "pactl get-sink-mute @DEFAULT_SINK@ | awk -F ' ' '{print $2}'"
-local get_volume = "pactl get-sink-volume @DEFAULT_SINK@ | head -1 | awk -F ' ' '{print $5}'"
-
--- WARNING: Following 3 require brightnessctl
-local up_brightness = string.format("brightnessctl set %s+", brightnessctl_step)
-local down_brightness = string.format("brightnessctl set %s-", brightnessctl_step)
-local get_brightness = "brightnessctl get"
-
-
--- =================
--- UTILS FOR WIDGETS
--- =================
-
-local function read_stat_file(file)
-    local content = ""
-    local f = io.open(file, "r")
-    if f then
-        io.input(f)
-        content = io.read()
-        io.close(f)
-    end
-    return content
-end
-
-local function get_audio_sink_mute()
-    local outP = assert(io.popen(get_mute, "r"))
-    local output = outP:read("l")
-    outP:close()
-    if output == "no" then
-        return false
-    else
-        return true
-    end
-end
-
-local function get_audio_sink_volume()
-    local outP = assert(io.popen(get_volume, "r"))
-    local output = outP:read("l")
-    outP:close()
-    return output
-end
-
-local function get_screen_brightness()
-    local outP = assert(io.popen(get_brightness, "r"))
-    local output = outP:read("l")
-    outP:close()
-    return output
-end
-
-local function battery_capacity(batN) 
-    return string.format("/sys/class/power_supply/BAT%d/capacity", batN)
-end
-
-local ac_connected = "/sys/class/power_supply/ACAD/online"
-
 -- =====
 -- WIBAR
 -- =====
@@ -193,7 +114,7 @@ local w_battery = wibox.widget {
     },
     layout = wibox.layout.stack,
     set_battery = function(self, val)
-        local is_charging = read_stat_file(ac_connected)
+        local is_charging = utils.read_stat_file(files.ac_connected())
         local emoji = "🔋"
         if is_charging == "1" then
             emoji = "🔌"
@@ -217,8 +138,8 @@ gears.timer {
     call_now  = true,
     autostart = true,
     callback  = function()
-        local cap = battery_capacity(1)
-        local charge = read_stat_file(cap)
+        local cap = files.battery_capacity(1)
+        local charge = utils.read_stat_file(cap)
         w_battery.battery = charge
     end
 }
@@ -232,14 +153,14 @@ local w_volume = wibox.widget {
     layout = wibox.layout.stack,
     -- Would love a hint on how to do it not using the setter :/
     set_update = function(self, v)
-        local is_muted = get_audio_sink_mute()
+        local is_muted = utils.get_audio_sink_mute()
         local emoji = ""
         if is_muted then
             emoji = "🔇"
         else
             emoji = "🔊"
         end
-        local volume = get_audio_sink_volume()
+        local volume = utils.get_audio_sink_volume()
         if (volume == nil) then
             volume = "0"
         end
@@ -273,7 +194,7 @@ gears.timer {
     call_now = true,
     autostart = true,
     callback = function () 
-       local brightness = get_screen_brightness()
+       local brightness = utils.get_screen_brightness()
        w_brightness.value = brightness
     end
 }
@@ -439,12 +360,6 @@ local globalkeys = gears.table.join(
     ),
 
     awful.key(
-        { modkey }, "w",
-        function () mymainmenu:show() end,
-        { description = "Show main menu", group = "awesome" }
-    ),
-
-    awful.key(
         { modkey, "Shift" }, "j",
         function () awful.client.swap.byidx(1) end,
         { description = "Swap with next client in tag", group = "client" }
@@ -550,13 +465,13 @@ local globalkeys = gears.table.join(
 
     awful.key(
         {modkey, "Shift" }, "x",
-        function () awful.util.spawn(lock_screen) end,
+        function () awful.util.spawn(commands.lock_screen()) end,
         { description = "Lock screen", group = "programs" }
     ),
 
     awful.key(
         { modkey }, "d",
-        function () awful.spawn(run_dmenu) end,
+        function () awful.spawn(commands.run_dmenu(dmenu_mon, dmenu_font, dmenu_nb, dmenu_nf, dmenu_sb, dmenu_sf)) end,
         { description = "Open dmenu", group = "programs" }
     ),
 
@@ -566,30 +481,30 @@ local globalkeys = gears.table.join(
 
     awful.key(
         {}, "XF86AudioMute",
-        function () awful.spawn(mute_toggle) end,
+        function () awful.spawn(commands.toggle_mute()) end,
         { description = "Toggle volume muting", group = "system" }
     ),
 
     awful.key(
         {}, "XF86AudioLowerVolume",
-        function () awful.spawn(down_volume) end,
+        function () awful.spawn(commands.down_volume(amixer_step)) end,
         { description = "Lower volume", group = "system" }
     ),
 
     awful.key(
         {}, "XF86AudioRaiseVolume",
-        function () awful.spawn(up_volume) end,
+        function () awful.spawn(commands.up_volume(amixer_step)) end,
         { description = "Raise volume", group = "system" }
     ),
 
     awful.key(
         {}, "XF86MonBrightnessDown",
-        function () awful.spawn(down_brightness) end,
+        function () awful.spawn(commands.down_brightness(brightnessctl_step)) end,
         { description = "Lower screen brightness", group = "system" }
     ),
 
     awful.key({}, "XF86MonBrightnessUp",
-        function () awful.spawn(up_brightness) end,
+        function () awful.spawn(commands.up_brightness(brightnessctl_step)) end,
         { description = "Raise screen brightness", group = "system" }
     )
 
