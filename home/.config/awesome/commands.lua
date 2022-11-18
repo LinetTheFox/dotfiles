@@ -3,6 +3,8 @@ local os = require("os")
 -- Command definitions
 local _lock_screen = "i3lock -i /home/linetm/.config/awesome/themes/default/bg.png"
 local _run_dmenu = 'dmenu_run -m %s -fn %s -nb "%s" -nf "%s" -sb "%s" -sf "%s"'
+local _open_xdotool_bookmarks = 'grep -v "^#" /home/linetm/.local/share/util/bookmarks | dmenu -i -l 50 -m %s -fn %s -nb "%s" -nf "%s" -sb "%s" -sf "%s" | cut -d" " -f1'
+local _xdotool_type = 'xdotool type %s'
 local _get_mute = "pactl get-sink-mute @DEFAULT_SINK@ | awk -F ' ' '{print $2}'"
 local _toggle_mute = "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 local _get_volume = "pactl get-sink-volume @DEFAULT_SINK@ | head -1 | awk -F ' ' '{print $5}'"
@@ -20,6 +22,14 @@ end
 
 function commands.run_dmenu(mon, font, nb, nf, sb, sf)
     return string.format(_run_dmenu, mon, font, nb, nf, sb, sf)
+end
+
+function commands.open_bookmarks(mon, font, nb, nf, sb, sf)
+    return string.format(_open_xdotool_bookmarks, mon, font, nb, nf, sb, sf)
+end
+
+function commands.type(s)
+    return string.format(_xdotool_type, s)
 end
 
 -- WARNING: Following 5 require PulseAudio and pactl

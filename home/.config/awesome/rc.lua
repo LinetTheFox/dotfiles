@@ -21,6 +21,8 @@ local utils = require("utils")
 local commands = require("commands")
 local files = require("files")
 
+local nmlua = require("nmlua")
+
 -- =====================
 -- USER CONFIG DIRECTORY (you should be there if you see this file)
 -- =====================
@@ -105,6 +107,8 @@ end
 local w_layout = awful.widget.keyboardlayout()
 
 local w_clock = wibox.widget.textclock("🕐 %a %b %d, %H:%M:%S ", 1)
+
+--local w_network = nmlua.network_widget
 
 local w_battery = wibox.widget {
     {
@@ -305,7 +309,9 @@ awful.screen.connect_for_each_screen(function(s)
             w_volume,
             w_separator(5),
             w_brightness,
-            w_separator(6),
+            --w_separator(6),
+            --w_network,
+            w_separator(7),
             w_clock,
             s.mylayoutbox,
         },
@@ -464,7 +470,7 @@ local globalkeys = gears.table.join(
     ),
 
     awful.key(
-        {modkey, "Shift" }, "x",
+        { modkey, "Shift" }, "x",
         function () awful.util.spawn(commands.lock_screen()) end,
         { description = "Lock screen", group = "programs" }
     ),
@@ -473,6 +479,12 @@ local globalkeys = gears.table.join(
         { modkey }, "d",
         function () awful.spawn(commands.run_dmenu(dmenu_mon, dmenu_font, dmenu_nb, dmenu_nf, dmenu_sb, dmenu_sf)) end,
         { description = "Open dmenu", group = "programs" }
+    ),
+
+    awful.key(
+        { modkey, "Shift" }, "b",
+        function () awful.spawn(utils.get_and_paste_bookmark(dmenu_mon, dmenu_font, dmenu_nb, dmenu_nf, dmenu_sb, dmenu_sf)) end,
+        { description = "Open dmenu with bookmarks to paste", group = "programs" }
     ),
 
     -- The following are media keys that have special mappings.
@@ -688,9 +700,11 @@ awful.rules.rules = {
           "Wpa_gui",
           "veromix",
           "xtightvncviewer",
+          "intellij-splash-screen",
         },
         name = {
           "Event Tester",  -- xev.
+          "splash",
         },
         role = {
           "AlarmWindow",  -- Thunderbird's calendar.
@@ -702,7 +716,7 @@ awful.rules.rules = {
     {
         rule_any = {
             type = { "normal" }
-        }, 
+        },
         properties = { titlebars_enabled = false }
     },
     {

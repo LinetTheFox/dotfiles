@@ -13,6 +13,17 @@ function utils.read_stat_file(file)
     return content
 end
 
+function utils.get_and_paste_bookmark(mon, font, nb, nf, sb, sf)
+    local paste = ""
+    local outP = assert(io.popen(commands.open_bookmarks(mon, font, nb, nf, sb ,sf), "r"))
+    paste = outP:read("l")
+    outP:close()
+
+    os.execute(commands.type(paste))
+end
+
+
+
 function utils.get_audio_sink_mute()
     local outP = assert(io.popen(commands.get_mute(), "r"))
     local output = outP:read("l")
