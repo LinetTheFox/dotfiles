@@ -1,5 +1,3 @@
-local os = require("os")
-
 -- Command definitions
 local _lock_screen = "i3lock -i /home/linetm/.config/awesome/themes/default/bg.png"
 local _run_dmenu = 'dmenu_run -m %s -fn %s -nb "%s" -nf "%s" -sb "%s" -sf "%s"'

@@ -12,11 +12,11 @@ local themes_path = gfs.get_configuration_dir() .. "themes/"
 -- Colors to use as an overall theme.
 
 -- Swatch of purple
-colors_purple_1 = "#8A5E7C"
-colors_purple_2 = "#773E66"
-colors_purple_3 = "#50284A"
-colors_purple_4 = "#3C0D36"
-colors_purple_5 = "#29112A"
+colors_purple_1 = "#330045"
+colors_purple_2 = "#2E003E"
+colors_purple_3 = "#260133"
+colors_purple_4 = "#1E0027"
+colors_purple_5 = "#000000"
 
 -- White to black
 colors_white = "#FFFFFF"
@@ -25,9 +25,13 @@ colors_grey_2 = "#888888"
 colors_grey_3 = "#444444"
 colors_black = "#000000"
 
+-- Misc
+colors_cyan = "#00FFFF"
+colors_magenta = "#FF00DD"
+
 local theme = {}
 
-theme.font          = "sans 9"
+theme.font          = "sans 10"
 
 theme.bg_normal     = colors_purple_4
 theme.bg_focus      = colors_purple_3
@@ -43,7 +47,7 @@ theme.fg_minimize   = colors_white
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
 theme.border_normal = colors_purple_5
-theme.border_focus  = colors_purple_1
+theme.border_focus  = colors_magenta
 theme.border_marked = colors_purple_2
 
 -- There are other variable sets

@@ -19,10 +19,10 @@ function utils.get_and_paste_bookmark(mon, font, nb, nf, sb, sf)
     paste = outP:read("l")
     outP:close()
 
-    os.execute(commands.type(paste))
+    if paste ~= nil then
+        os.execute(commands.type(paste))
+    end
 end
-
-
 
 function utils.get_audio_sink_mute()
     local outP = assert(io.popen(commands.get_mute(), "r"))
