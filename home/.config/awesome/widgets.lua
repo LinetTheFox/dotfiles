@@ -112,6 +112,19 @@ widgets.volume = wibox.widget {
     end,
 }
 
+widgets.weather = wibox.widget {
+    {
+        id      = "weathermon",
+        text    = "🌞🌚",
+        font    = "Envy Code R 11",
+        widget  = wibox.widget.textbox
+    },
+    layout = wibox.layout.stack,
+    set_wttr = function(self, val)
+        self.weathermon.text = val
+    end
+}
+
 widgets.separator = wibox.widget {
     {
         text    = "  •  ",
@@ -134,6 +147,18 @@ gears.timer {
         widgets.battery.battery = charge
         -- volume
         widgets.volume.update = nil -- Just calling the method, don't mind nil
+    end
+}
+
+gears.timer {
+    timeout = 3600,
+    call_now = true,
+    autostart = true,
+    callback = function()
+        local weather_val = utils.get_weather()
+        if weather_val ~= nil and weather_val ~= "" then
+            widgets.weather.wttr = weather_val
+        end
     end
 }
 

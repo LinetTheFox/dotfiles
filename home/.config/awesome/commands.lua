@@ -11,6 +11,7 @@ local _down_volume = "pactl set-sink-volume @DEFAULT_SINK@ -%s"
 local _brightness_up = "brightnessctl set %s+"
 local _brightness_down = "brightnessctl set %s-"
 local _get_brightness = "brightnessctl get"
+local _get_weather = 'curl -s http://wttr.in/Kyiv?format="%c%t" | sed "s/ //g"'
 
 local commands = {}
 
@@ -64,6 +65,10 @@ end
 
 function commands.get_brightness()
     return _get_brightness
+end
+
+function commands.get_weather()
+    return _get_weather
 end
 
 return commands

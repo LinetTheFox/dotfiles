@@ -49,4 +49,11 @@ function utils.get_screen_brightness()
     return output
 end
 
+function utils.get_weather()
+    local outP = assert(io.popen(commands.get_weather(), "r"))
+    local output = outP:read("l")
+    outP:close()
+    return output
+end
+
 return utils

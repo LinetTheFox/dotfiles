@@ -1,7 +1,3 @@
--- If LuaRocks is installed, make sure that packages installed through it are
--- found (e.g. lgi). If LuaRocks is not installed, do nothing.
-pcall(require, "luarocks.loader")
-
 local gears = require("gears")
 local awful = require("awful")
 require("awful.autofocus")
@@ -118,6 +114,8 @@ awful.screen.connect_for_each_screen(
                 wibox.widget.systray(),
                 widgets.separator,
                 widgets.keyboard,
+                widgets.separator,
+                widgets.weather,
                 widgets.separator,
                 widgets.battery,
                 widgets.separator,
